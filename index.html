@@ -23,6 +23,30 @@
     top: 0;
     z-index: 10;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    position: relative;
+  }
+  .download-btn {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.12);
+    border: none;
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .download-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  .download-btn:active {
+    background: rgba(0,0,0,0.22);
   }
   .status {
     text-align: center;
@@ -266,8 +290,18 @@
 </style>
 </head>
 <body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-<header>제62기 전도폭발훈련 모집 부스 봉사자 신청</header>
+<header>
+  제62기 전도폭발훈련 모집 부스 봉사자 신청
+  <button class="download-btn" id="downloadBtn" title="현황판 이미지 다운로드">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3v12"></path>
+      <path d="M7 10l5 5 5-5"></path>
+      <path d="M5 19h14"></path>
+    </svg>
+  </button>
+</header>
 <div class="status" id="statusMsg">일정을 불러오는 중...</div>
 
 <div id="weeks"></div>
@@ -631,6 +665,26 @@ async function deleteRegistration(id) {
     loadRegistrations();
   }
 }
+
+/* ===================== 현황판 다운로드 ===================== */
+document.getElementById("downloadBtn").addEventListener("click", async () => {
+  const target = document.getElementById("weeks");
+  const btn = document.getElementById("downloadBtn");
+  btn.disabled = true;
+  try {
+    const canvas = await html2canvas(target, { backgroundColor: "#f4f4f4", scale: 2 });
+    const link = document.createElement("a");
+    const today = new Date();
+    const stamp = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,"0")}${String(today.getDate()).padStart(2,"0")}`;
+    link.download = `booth62_현황판_${stamp}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  } catch (e) {
+    alert("이미지 저장 중 오류가 발생했습니다. 다시 시도해주세요.");
+  } finally {
+    btn.disabled = false;
+  }
+});
 
 /* ===================== 시작 ===================== */
 render();
