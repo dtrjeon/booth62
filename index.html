@@ -15,9 +15,10 @@
   }
   header {
     background: #f5c518;
-    padding: 18px 16px;
+    padding: 18px 52px 18px 16px;
     text-align: center;
-    font-size: 20px;
+    font-size: 18px;
+    line-height: 1.35;
     font-weight: 800;
     position: sticky;
     top: 0;
@@ -27,14 +28,13 @@
   }
   .download-btn {
     position: absolute;
-    top: 50%;
-    right: 14px;
-    transform: translateY(-50%);
+    top: 12px;
+    right: 12px;
     background: rgba(0,0,0,0.12);
     border: none;
     border-radius: 8px;
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -290,7 +290,7 @@
 </style>
 </head>
 <body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <header>
   제62기 전도폭발훈련 모집 부스 봉사자 신청
@@ -666,21 +666,69 @@ async function deleteRegistration(id) {
   }
 }
 
-/* ===================== 현황판 다운로드 ===================== */
-document.getElementById("downloadBtn").addEventListener("click", async () => {
-  const target = document.getElementById("weeks");
+/* ===================== 현황판 다운로드 (엑셀) ===================== */
+function buildDashboardWorkbook() {
+  const aoa = [];
+  const merges = [];
+
+  // 제목 행
+  aoa.push(["제62기 전도폭발훈련 모집 부스 봉사자 신청", "", "", "", ""]);
+  merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } });
+
+  WEEKS.forEach((week, wi) => {
+    const dateRow = aoa.length;
+
+    // 날짜 + 위치 헤더 (2행에 걸쳐 날짜 셀 병합)
+    aoa.push([week.date, "분당 7층", "분당 로비층", "수지 1층", ""]);
+    aoa.push(["", "분주반", "화요반", "화요반", "수주반"]);
+    merges.push({ s: { r: dateRow, c: 0 }, e: { r: dateRow + 1, c: 0 } }); // 날짜 셀 세로 병합
+    merges.push({ s: { r: dateRow, c: 3 }, e: { r: dateRow, c: 4 } });   // 수지 1층 가로 병합
+
+    TIMES.forEach((timeLabel, ti) => {
+      const row = [timeLabel];
+      CLASSES.forEach((c) => {
+        const entries = getEntries(wi, c.key, ti);
+        row.push(entries.map(displayName).join("\n"));
+      });
+      aoa.push(row);
+    });
+  });
+
+  // 반별 최종 확정 현황
+  const confirmTitleRow = aoa.length;
+  aoa.push(["반별 최종 확정 현황", "", "", "", ""]);
+  merges.push({ s: { r: confirmTitleRow, c: 0 }, e: { r: confirmTitleRow, c: 4 } });
+
+  CONFIRM_GROUPS.forEach((g) => {
+    const info = confirmations[g.key];
+    const statusRow = aoa.length;
+    aoa.push([
+      `${g.label} (${g.sub})`,
+      info ? `확정 완료 - ${info.name} · ${formatDate(info.at)}` : "미확정",
+      "", "", ""
+    ]);
+    merges.push({ s: { r: statusRow, c: 1 }, e: { r: statusRow, c: 4 } });
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws["!merges"] = merges;
+  ws["!cols"] = [{ wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "현황판");
+  return wb;
+}
+
+document.getElementById("downloadBtn").addEventListener("click", () => {
   const btn = document.getElementById("downloadBtn");
   btn.disabled = true;
   try {
-    const canvas = await html2canvas(target, { backgroundColor: "#f4f4f4", scale: 2 });
-    const link = document.createElement("a");
+    const wb = buildDashboardWorkbook();
     const today = new Date();
     const stamp = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,"0")}${String(today.getDate()).padStart(2,"0")}`;
-    link.download = `booth62_현황판_${stamp}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
+    XLSX.writeFile(wb, `booth62_현황판_${stamp}.xlsx`);
   } catch (e) {
-    alert("이미지 저장 중 오류가 발생했습니다. 다시 시도해주세요.");
+    alert("엑셀 파일 저장 중 오류가 발생했습니다. 다시 시도해주세요.");
   } finally {
     btn.disabled = false;
   }
