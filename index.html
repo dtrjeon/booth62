@@ -60,6 +60,25 @@
     color: #777;
     padding: 6px 0 0;
   }
+  .kakao-banner {
+    background: #fff3cd;
+    color: #7a5c00;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    text-align: center;
+    line-height: 1.6;
+    border-bottom: 1px solid #f0d878;
+  }
+  .kakao-banner button {
+    margin-top: 6px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #f5c518;
+    font-weight: 700;
+    font-size: 13px;
+    color: #222;
+  }
   .note-bar {
     text-align: left;
     font-size: 12.5px;
@@ -310,6 +329,7 @@
     </svg>
   </button>
 </header>
+<div id="kakaoBanner"></div>
 <div class="status" id="statusMsg">일정을 불러오는 중...</div>
 
 <div id="weeks"></div>
@@ -340,6 +360,34 @@
 /* ===================== 설정 ===================== */
 // Google Apps Script 웹앱 배포 URL을 여기에 넣으세요.
 const GAS_URL = "https://script.google.com/macros/s/AKfycbzLxDBg4j_eX8q6MrO29okjn-4-M4XYA02CRcLYEtEteuAZjZOHh0qX7rbvMHaUarbI/exec";
+
+/* ===================== 카카오톡 인앱 브라우저 안내 =====================
+   카카오톡 등 인앱 브라우저는 blob 다운로드를 지원하지 않아
+   엑셀 다운로드가 조용히 실패하므로, 외부 브라우저로 열도록 안내한다. */
+(function checkInAppBrowser() {
+  const ua = navigator.userAgent || "";
+  const isKakao = /KAKAOTALK/i.test(ua);
+  const isLine = /Line\//i.test(ua) && !/Chrome|CriOS/i.test(ua);
+  if (!isKakao && !isLine) return;
+
+  const banner = document.getElementById("kakaoBanner");
+  banner.className = "kakao-banner";
+  banner.innerHTML = `
+    이 브라우저에서는 파일 다운로드가 되지 않을 수 있어요.<br>
+    아래 버튼으로 다른 브라우저에서 열어주세요.<br>
+    <button id="openExternalBtn" type="button">다른 브라우저로 열기</button>
+  `;
+  document.getElementById("openExternalBtn").addEventListener("click", () => {
+    const url = encodeURIComponent(location.href);
+    if (isKakao) {
+      location.href = "kakaotalk://web/openExternal?url=" + url;
+    } else {
+      // 안드로이드 인텐트 방식 (라인 등 기타 인앱 브라우저 대응)
+      location.href = "intent://" + location.href.replace(/^https?:\/\//, "") +
+        "#Intent;scheme=https;package=com.android.chrome;end";
+    }
+  });
+})();
 
 const WEEKS = [
   { date: "8월 2일(주일)" },
