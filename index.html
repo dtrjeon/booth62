@@ -298,11 +298,11 @@
 </style>
 </head>
 <body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 
 <header>
   제62기 전도폭발훈련 모집 부스 봉사자 신청
-  <button class="download-btn" id="downloadBtn" title="현황판 이미지 다운로드">
+  <button class="download-btn" id="downloadBtn" title="현황판 엑셀 다운로드">
     <svg viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 3v12"></path>
       <path d="M7 10l5 5 5-5"></path>
@@ -313,6 +313,7 @@
 <div class="status" id="statusMsg">일정을 불러오는 중...</div>
 
 <div id="weeks"></div>
+
 
 <div class="overlay" id="overlay">
   <div class="sheet">
@@ -674,67 +675,123 @@ async function deleteRegistration(id) {
   }
 }
 
-/* ===================== 현황판 다운로드 (엑셀) ===================== */
-function buildDashboardWorkbook() {
-  const aoa = [];
-  const merges = [];
+/* ===================== 현황판 다운로드 (엑셀, 화면과 동일한 색상/스타일) ===================== */
+async function buildDashboardExcelBlob() {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("현황판", { views: [{ showGridLines: false }] });
+  sheet.columns = [{ width: 16 }, { width: 18 }, { width: 18 }, { width: 18 }, { width: 18 }];
 
-  // 제목 행
-  aoa.push(["제62기 전도폭발훈련 모집 부스 봉사자 신청", "", "", "", ""]);
-  merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } });
+  const thinBorder = {
+    top: { style: "thin", color: { argb: "FFE2E2E2" } },
+    left: { style: "thin", color: { argb: "FFE2E2E2" } },
+    bottom: { style: "thin", color: { argb: "FFE2E2E2" } },
+    right: { style: "thin", color: { argb: "FFE2E2E2" } }
+  };
+
+  function styleRow(row, { bg, color, bold, size, align } = {}) {
+    row.eachCell({ includeEmpty: true }, (cell) => {
+      cell.border = thinBorder;
+      cell.alignment = { vertical: "middle", horizontal: align || "center", wrapText: true };
+      if (bg) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: bg } };
+      cell.font = { bold: !!bold, size: size || 11, color: color ? { argb: color } : undefined };
+    });
+  }
+
+  // 제목 (노란 헤더바)
+  const titleRow = sheet.addRow(["제62기 전도폭발훈련 모집 부스 봉사자 신청", "", "", "", ""]);
+  sheet.mergeCells(`A${titleRow.number}:E${titleRow.number}`);
+  styleRow(titleRow, { bg: "FFF5C518", bold: true, size: 14 });
+  titleRow.height = 26;
 
   WEEKS.forEach((week, wi) => {
-    const dateRow = aoa.length;
+    // 주차 제목 (검정 바)
+    const weekTitleRow = sheet.addRow([week.date, "", "", "", ""]);
+    sheet.mergeCells(`A${weekTitleRow.number}:E${weekTitleRow.number}`);
+    styleRow(weekTitleRow, { bg: "FF222222", color: "FFFFFFFF", bold: true, size: 12, align: "left" });
+    weekTitleRow.height = 22;
 
-    // 날짜 + 위치 헤더 (2행에 걸쳐 날짜 셀 병합)
-    aoa.push([week.date, "분당 7층", "분당 로비층", "수지 1층", ""]);
-    aoa.push(["", "분주반", "화요반", "화요반", "수주반"]);
-    merges.push({ s: { r: dateRow, c: 0 }, e: { r: dateRow + 1, c: 0 } }); // 날짜 셀 세로 병합
-    merges.push({ s: { r: dateRow, c: 3 }, e: { r: dateRow, c: 4 } });   // 수지 1층 가로 병합
+    // 위치 헤더
+    const locRow = sheet.addRow(["", "분당 7층", "분당 로비층", "수지 1층", ""]);
+    sheet.mergeCells(`D${locRow.number}:E${locRow.number}`);
+    styleRow(locRow, { bg: "FFFAFAFA", bold: true, size: 11 });
+
+    // 반 헤더
+    const clsRow = sheet.addRow(["", "분주반", "화요반", "화요반", "수주반"]);
+    styleRow(clsRow, { bg: "FFFAFAFA", bold: true, size: 11 });
 
     TIMES.forEach((timeLabel, ti) => {
-      const row = [timeLabel];
+      const rowValues = [timeLabel];
+      const filled = [];
       CLASSES.forEach((c) => {
         const entries = getEntries(wi, c.key, ti);
-        row.push(entries.map(displayName).join("\n"));
+        rowValues.push(entries.map(displayName).join("\n"));
+        filled.push(entries.length > 0);
       });
-      aoa.push(row);
+      const dataRow = sheet.addRow(rowValues);
+      dataRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        cell.border = thinBorder;
+        cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+        if (colNumber === 1) {
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFAFAFA" } };
+          cell.font = { bold: true, size: 11 };
+        } else if (filled[colNumber - 2]) {
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEEF6FF" } };
+          cell.font = { bold: true, size: 11, color: { argb: "FF1A5FB4" } };
+        } else {
+          cell.font = { size: 11 };
+        }
+      });
+      const maxLines = Math.max(1, ...rowValues.slice(1).map(v => (v.match(/\n/g) || []).length + 1));
+      dataRow.height = Math.max(20, 16 * maxLines);
     });
+
+    sheet.addRow([]); // 주차 간 여백
   });
 
   // 반별 최종 확정 현황
-  const confirmTitleRow = aoa.length;
-  aoa.push(["반별 최종 확정 현황", "", "", "", ""]);
-  merges.push({ s: { r: confirmTitleRow, c: 0 }, e: { r: confirmTitleRow, c: 4 } });
+  const confirmTitleRow = sheet.addRow(["반별 최종 확정 현황", "", "", "", ""]);
+  sheet.mergeCells(`A${confirmTitleRow.number}:E${confirmTitleRow.number}`);
+  styleRow(confirmTitleRow, { bg: "FF222222", color: "FFFFFFFF", bold: true, size: 12, align: "left" });
+  confirmTitleRow.height = 22;
 
   CONFIRM_GROUPS.forEach((g) => {
     const info = confirmations[g.key];
-    const statusRow = aoa.length;
-    aoa.push([
-      `${g.label} (${g.sub})`,
-      info ? `확정 완료 - ${info.name} · ${formatDate(info.at)}` : "미확정",
-      "", "", ""
-    ]);
-    merges.push({ s: { r: statusRow, c: 1 }, e: { r: statusRow, c: 4 } });
+    const statusText = info ? `확정 완료 - ${info.name} · ${formatDate(info.at)}` : "미확정";
+    const row = sheet.addRow([`${g.label} (${g.sub})`, `총무: ${g.manager}`, statusText, "", ""]);
+    sheet.mergeCells(`C${row.number}:E${row.number}`);
+    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+      cell.border = thinBorder;
+      cell.alignment = { vertical: "middle", horizontal: colNumber === 1 ? "left" : "center", wrapText: true };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF6F8FB" } };
+      if (colNumber === 3) {
+        cell.font = { bold: true, color: { argb: info ? "FF2F9E44" : "FF999999" } };
+      } else {
+        cell.font = { bold: colNumber === 1 };
+      }
+    });
   });
 
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
-  ws["!merges"] = merges;
-  ws["!cols"] = [{ wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }];
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "현황판");
-  return wb;
+  const buffer = await workbook.xlsx.writeBuffer();
+  return new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
 }
 
-document.getElementById("downloadBtn").addEventListener("click", () => {
+document.getElementById("downloadBtn").addEventListener("click", async () => {
   const btn = document.getElementById("downloadBtn");
   btn.disabled = true;
   try {
-    const wb = buildDashboardWorkbook();
-    const today = new Date();
-    const stamp = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,"0")}${String(today.getDate()).padStart(2,"0")}`;
-    XLSX.writeFile(wb, `booth62_현황판_${stamp}.xlsx`);
+    const blob = await buildDashboardExcelBlob();
+    const now = new Date();
+    const stamp = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,"0")}${String(now.getDate()).padStart(2,"0")}`;
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `booth62_dashboard_${stamp}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   } catch (e) {
     alert("엑셀 파일 저장 중 오류가 발생했습니다. 다시 시도해주세요.");
   } finally {
