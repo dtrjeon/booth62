@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>제62기 전도폭발훈련 모집 부스 봉사자 신청</title>
+<style>
+  html {
+    background: #ddd;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto;
+    max-width: 480px;
+    font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
+    background: #f4f4f4;
+    color: #222;
+    padding-bottom: 40px;
+    min-height: 100vh;
+    box-shadow: 0 0 16px rgba(0,0,0,0.15);
+  }
+  header {
+    background: #f5c518;
+    padding: 18px 52px 18px 16px;
+    text-align: center;
+    font-size: 18px;
+    line-height: 1.35;
+    font-weight: 800;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    position: relative;
+  }
+  .download-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.12);
+    border: none;
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .download-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  .download-btn:active {
+    background: rgba(0,0,0,0.22);
+  }
+  .status {
+    text-align: center;
+    font-size: 12px;
+    color: #777;
+    padding: 6px 0 0;
+  }
+  .kakao-banner {
+    background: #fff3cd;
+    color: #7a5c00;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    text-align: center;
+    line-height: 1.6;
+    border-bottom: 1px solid #f0d878;
+  }
+  .kakao-banner button {
+    margin-top: 6px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #f5c518;
+    font-weight: 700;
+    font-size: 13px;
+    color: #222;
+  }
+  .note-bar {
+    text-align: left;
+    font-size: 12.5px;
+    color: #555;
+    background: #fff8e1;
+    border-bottom: 1px solid #f0e0a0;
+    padding: 8px 16px;
+    line-height: 1.6;
+  }
+  .week {
+    background: #fff;
+    margin: 14px 10px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .week-title {
+    background: #222;
+    color: #fff;
+    padding: 10px 14px;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    border: 1px solid #e2e2e2;
+    padding: 6px 4px;
+    text-align: center;
+    vertical-align: middle;
+  }
+  th {
+    background: #fafafa;
+    font-weight: 600;
+    font-size: 12px;
+  }
+  td.time {
+    background: #fafafa;
+    font-weight: 600;
+    white-space: nowrap;
+    font-size: 12px;
+  }
+  td.slot {
+    cursor: pointer;
+    min-width: 60px;
+    height: 40px;
+    -webkit-tap-highlight-color: transparent;
+    line-height: 1.4;
+  }
+  td.slot.filled {
+    background: #eef6ff;
+    font-weight: 700;
+    color: #1a5fb4;
+  }
+  td.slot .name-line {
+    display: block;
+    font-size: 12px;
+  }
+  td.slot:active {
+    background: #ddd;
+  }
+
+  /* modal */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .overlay.open { display: flex; }
+  .sheet {
+    background: #fff;
+    width: 100%;
+    max-width: 480px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 16px 16px 0 0;
+    padding: 20px 20px 28px;
+    animation: slideup 0.2s ease-out;
+  }
+  @keyframes slideup {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .sheet h3 {
+    margin: 0 0 4px;
+    font-size: 17px;
+  }
+  .sheet .sub {
+    color: #777;
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+  .existing-list {
+    margin-bottom: 14px;
+  }
+  .existing-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f6f8fb;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+  .existing-item .remove-btn {
+    background: #e03131;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .sheet input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+  .part-label {
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 6px;
+  }
+  .part-select {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .part-btn {
+    flex: 1;
+    padding: 10px 0;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #333;
+    font-weight: 600;
+  }
+  .part-btn.active {
+    background: #1a5fb4;
+    color: #fff;
+    border-color: #1a5fb4;
+  }
+  .add-btn {
+    width: 100%;
+    padding: 13px;
+    font-size: 15px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    background: #1a5fb4;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+  .btn-cancel {
+    width: 100%;
+    padding: 13px;
+    font-size: 15px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    background: #eee;
+    color: #333;
+  }
+
+  .confirm-box {
+    background: #fff;
+    margin: 4px 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    padding: 14px 16px 16px;
+  }
+  .confirm-box .confirm-title {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+  .confirm-box .confirm-notice {
+    font-size: 12.5px;
+    color: #c0392b;
+    background: #fdecea;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+  .confirm-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .confirm-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: #f6f8fb;
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .confirm-row .label {
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .confirm-row .sub-label {
+    font-size: 11px;
+    color: #888;
+    font-weight: 400;
+  }
+  .confirm-btn {
+    padding: 9px 14px;
+    font-size: 13px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 700;
+    background: #1a5fb4;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .confirm-btn.done {
+    background: #2f9e44;
+  }
+</style>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+
+<header>
+  제62기 전도폭발훈련 모집 부스 봉사자 신청
+  <button class="download-btn" id="downloadBtn" title="현황판 엑셀 다운로드">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3v12"></path>
+      <path d="M7 10l5 5 5-5"></path>
+      <path d="M5 19h14"></path>
+    </svg>
+  </button>
+</header>
+<div id="kakaoBanner"></div>
+<div class="status" id="statusMsg">일정을 불러오는 중...</div>
+
+<div id="weeks"></div>
+
+
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <h3 id="sheetTitle">봉사 등록</h3>
+    <div class="sub" id="sheetSub"></div>
+
+    <div class="existing-list" id="existingList"></div>
+
+    <input type="text" id="nameInput" placeholder="이름을 입력하세요" maxlength="10">
+
+    <div class="part-label">섬기는 시간</div>
+    <div class="part-select" id="partSelect">
+      <button type="button" class="part-btn active" data-part="전후">예배시간 전후</button>
+      <button type="button" class="part-btn" data-part="전">예배시간 전</button>
+      <button type="button" class="part-btn" data-part="후">예배시간 후</button>
+    </div>
+
+    <button class="add-btn" id="saveBtn">등록</button>
+    <button class="btn-cancel" id="cancelBtn">닫기</button>
+  </div>
+</div>
+
+<script>
+/* ===================== 설정 ===================== */
+// Google Apps Script 웹앱 배포 URL을 여기에 넣으세요.
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzLxDBg4j_eX8q6MrO29okjn-4-M4XYA02CRcLYEtEteuAZjZOHh0qX7rbvMHaUarbI/exec";
+
+/* ===================== 카카오톡 인앱 브라우저 안내 =====================
+   카카오톡 등 인앱 브라우저는 blob 다운로드를 지원하지 않아
+   엑셀 다운로드가 조용히 실패하므로, 외부 브라우저로 열도록 안내한다. */
+(function checkInAppBrowser() {
+  const ua = navigator.userAgent || "";
+  const isKakao = /KAKAOTALK/i.test(ua);
+  const isLine = /Line\//i.test(ua) && !/Chrome|CriOS/i.test(ua);
+  if (!isKakao && !isLine) return;
+
+  const banner = document.getElementById("kakaoBanner");
+  banner.className = "kakao-banner";
+  banner.innerHTML = `
+    이 브라우저에서는 파일 다운로드가 되지 않을 수 있어요.<br>
+    아래 버튼으로 다른 브라우저에서 열어주세요.<br>
+    <button id="openExternalBtn" type="button">다른 브라우저로 열기</button>
+  `;
+  document.getElementById("openExternalBtn").addEventListener("click", () => {
+    const url = encodeURIComponent(location.href);
+    if (isKakao) {
+      location.href = "kakaotalk://web/openExternal?url=" + url;
+    } else {
+      // 안드로이드 인텐트 방식 (라인 등 기타 인앱 브라우저 대응)
+      location.href = "intent://" + location.href.replace(/^https?:\/\//, "") +
+        "#Intent;scheme=https;package=com.android.chrome;end";
+    }
+  });
+})();
+
+const WEEKS = [
+  { date: "8월 2일(주일)" },
+  { date: "8월 9일(주일)" },
+  { date: "8월 16일(주일)" },
+  { date: "8월 23일(주일)" },
+];
+
+const CLASSES = [
+  { key: "bd7f_bj",  loc: "분당 7층",   cls: "분주반" },
+  { key: "bdl_hy",   loc: "분당 로비층", cls: "화요반" },
+  { key: "sj1_hy",   loc: "수지 1층",   cls: "화요반" },
+  { key: "sj1_su",   loc: "수지 1층",   cls: "수주반" },
+];
+
+const TIMES = ["8시 예배 후", "10시 예배 전후", "12시 예배 전후", "14시 예배 전후"];
+
+// 최종 확정 버튼 그룹 (반별). 화요반은 분당/수지 두 곳에서 진행되지만 확정은 통합해서 한 번에.
+const CONFIRM_GROUPS = [
+  { key: "bd7f_bj",     label: "분주반", sub: "분당 7층",              manager: "조호점" },
+  { key: "hy_combined", label: "화요반", sub: "분당 로비층, 수지 1층", manager: "김진희" },
+  { key: "sj1_su",      label: "수주반", sub: "수지 1층",              manager: "전태룡" },
+];
+
+/* ===================== 상태 ===================== */
+// registrations[weekIdx][classKey][timeIdx] = [{id, name, part}, ...]
+// part: "전후" | "전" | "후"
+let registrations = {};
+// confirmations[classKey] = { name: "확정한 총무 이름", at: "확정 시각" } | undefined
+let confirmations = {};
+let current = null; // {weekIdx, classKey, timeIdx}
+let selectedPart = "전후";
+
+/* ===================== 렌더링 ===================== */
+function slotId(w, c, t) { return `w${w}_${c}_t${t}`; }
+
+function getEntries(w, c, t) {
+  return registrations[w]?.[c]?.[t] || [];
+}
+
+function displayName(entry) {
+  const suffix = entry.part && entry.part !== "전후" ? `(${entry.part})` : "";
+  return `${entry.name}${suffix}`;
+}
+
+function render() {
+  const container = document.getElementById("weeks");
+  container.innerHTML = "";
+
+  WEEKS.forEach((week, wi) => {
+    const box = document.createElement("div");
+    box.className = "week";
+
+    const title = document.createElement("div");
+    title.className = "week-title";
+    title.textContent = week.date;
+    box.appendChild(title);
+
+    const table = document.createElement("table");
+
+    const trLoc = document.createElement("tr");
+    trLoc.innerHTML = `<th></th>
+      <th>분당 7층</th>
+      <th>분당 로비층</th>
+      <th colspan="2">수지 1층</th>`;
+    table.appendChild(trLoc);
+
+    const trCls = document.createElement("tr");
+    trCls.innerHTML = `<th></th>
+      <th>분주반</th><th>화요반</th><th>화요반</th><th>수주반</th>`;
+    table.appendChild(trCls);
+
+    TIMES.forEach((timeLabel, ti) => {
+      const tr = document.createElement("tr");
+      const tdTime = document.createElement("td");
+      tdTime.className = "time";
+      tdTime.textContent = timeLabel;
+      tr.appendChild(tdTime);
+
+      CLASSES.forEach((c) => {
+        const td = document.createElement("td");
+        td.className = "slot";
+        td.id = slotId(wi, c.key, ti);
+        const entries = getEntries(wi, c.key, ti);
+        if (entries.length > 0) {
+          td.classList.add("filled");
+          td.innerHTML = entries.map(en => `<span class="name-line">${escapeHtml(displayName(en))}</span>`).join("");
+        } else {
+          td.textContent = "";
+        }
+        td.addEventListener("click", () => openSheet(wi, c, ti));
+        tr.appendChild(td);
+      });
+
+      table.appendChild(tr);
+    });
+
+    box.appendChild(table);
+    container.appendChild(box);
+
+    // 마지막 주(8/16) 하단에 반별 최종 확정 섹션 표시
+    if (wi === WEEKS.length - 1) {
+      container.appendChild(buildConfirmBox());
+    }
+  });
+}
+
+function buildConfirmBox() {
+  const box = document.createElement("div");
+  box.className = "confirm-box";
+
+  box.innerHTML = `
+    <div class="confirm-title">반별 최종 확정</div>
+    <div class="confirm-notice">최종 확인이 완료되면 각 반 총무님께서 '확정' 버튼을 클릭해 주세요.</div>
+    <div class="confirm-grid" id="confirmGrid"></div>
+  `;
+
+  const grid = box.querySelector("#confirmGrid");
+  CONFIRM_GROUPS.forEach((g) => {
+    const info = confirmations[g.key];
+    const row = document.createElement("div");
+    row.className = "confirm-row";
+
+    const labelWrap = document.createElement("div");
+    labelWrap.innerHTML = `<div class="label">${escapeHtml(g.label)} <span class="sub-label">(${escapeHtml(g.sub)})</span></div>` +
+      `<div class="sub-label">총무: ${escapeHtml(g.manager)}</div>` +
+      (info ? `<div class="sub-label">확정: ${escapeHtml(info.name)} · ${escapeHtml(formatDate(info.at))}</div>` : "");
+
+    const btn = document.createElement("button");
+    btn.className = "confirm-btn" + (info ? " done" : "");
+    btn.textContent = info ? "확정 완료 ✓" : "확정";
+    btn.addEventListener("click", () => onConfirmClick(g, info));
+
+    row.appendChild(labelWrap);
+    row.appendChild(btn);
+    grid.appendChild(row);
+  });
+
+  return box;
+}
+
+function formatDate(iso) {
+  try {
+    const d = new Date(iso);
+    return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  } catch (e) {
+    return iso;
+  }
+}
+
+async function onConfirmClick(group, existingInfo) {
+  if (existingInfo) {
+    if (!confirm(`${group.label}(${group.sub})의 확정을 취소할까요?\n(확정: ${existingInfo.name})`)) return;
+    await setConfirmation(group.key, null);
+    return;
+  }
+  if (!confirm(`${group.manager} 총무님, ${group.label}(${group.sub}) 명단을 최종 확정하시겠습니까?`)) return;
+  await setConfirmation(group.key, group.manager);
+}
+
+async function setConfirmation(classKey, name) {
+  // 낙관적 업데이트
+  if (name) {
+    confirmations[classKey] = { name, at: new Date().toISOString() };
+  } else {
+    delete confirmations[classKey];
+  }
+  render();
+
+  try {
+    await fetch(GAS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({
+        action: name ? "confirm" : "unconfirm",
+        classKey, name
+      })
+    });
+  } catch (e) {
+    alert("확정 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
+    loadRegistrations();
+  }
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, m => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[m]));
+}
+
+/* ===================== 등록 모달 ===================== */
+function openSheet(weekIdx, classInfo, timeIdx) {
+  current = { weekIdx, classKey: classInfo.key, timeIdx };
+  selectedPart = "전후";
+  updatePartButtons();
+
+  document.getElementById("sheetTitle").textContent = "봉사 등록";
+  document.getElementById("sheetSub").textContent =
+    `${WEEKS[weekIdx].date} · ${classInfo.loc} ${classInfo.cls} · ${TIMES[timeIdx]}`;
+
+  renderExistingList();
+
+  document.getElementById("nameInput").value = "";
+  document.getElementById("overlay").classList.add("open");
+  setTimeout(() => document.getElementById("nameInput").focus(), 100);
+}
+
+function updatePartButtons() {
+  document.querySelectorAll(".part-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.part === selectedPart);
+  });
+}
+
+document.getElementById("partSelect").addEventListener("click", (e) => {
+  const btn = e.target.closest(".part-btn");
+  if (!btn) return;
+  selectedPart = btn.dataset.part;
+  updatePartButtons();
+});
+
+function renderExistingList() {
+  const listEl = document.getElementById("existingList");
+  if (!current) { listEl.innerHTML = ""; return; }
+  const entries = getEntries(current.weekIdx, current.classKey, current.timeIdx);
+  if (entries.length === 0) {
+    listEl.innerHTML = `<div style="color:#999;font-size:13px;margin-bottom:10px;">아직 등록된 봉사자가 없습니다.</div>`;
+    return;
+  }
+  listEl.innerHTML = entries.map(en => `
+    <div class="existing-item">
+      <span>${escapeHtml(displayName(en))}</span>
+      <button class="remove-btn" data-id="${en.id}">삭제</button>
+    </div>
+  `).join("");
+
+  listEl.querySelectorAll(".remove-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      if (!confirm(`${btn.previousElementSibling.textContent} 님의 등록을 취소할까요?`)) return;
+      await deleteRegistration(btn.dataset.id);
+      renderExistingList();
+    });
+  });
+}
+
+function closeSheet() {
+  document.getElementById("overlay").classList.remove("open");
+  current = null;
+}
+
+document.getElementById("cancelBtn").addEventListener("click", closeSheet);
+document.getElementById("overlay").addEventListener("click", (e) => {
+  if (e.target.id === "overlay") closeSheet();
+});
+
+document.getElementById("saveBtn").addEventListener("click", async () => {
+  const input = document.getElementById("nameInput");
+  const name = input.value.trim();
+  if (!name) { alert("이름을 입력해주세요."); return; }
+  if (!current) return;
+
+  await addRegistration(current.weekIdx, current.classKey, current.timeIdx, name, selectedPart);
+  input.value = "";
+  selectedPart = "전후";
+  updatePartButtons();
+  renderExistingList();
+});
+
+/* ===================== 서버 통신 ===================== */
+async function loadRegistrations() {
+  try {
+    const res = await fetch(`${GAS_URL}?action=list`);
+    const data = await res.json();
+    registrations = data.registrations || {};
+    confirmations = data.confirmations || {};
+    document.getElementById("statusMsg").textContent = "";
+  } catch (e) {
+    document.getElementById("statusMsg").textContent = "⚠ 서버 연결 실패 (GAS_URL 설정을 확인하세요)";
+  }
+  render();
+}
+
+async function addRegistration(weekIdx, classKey, timeIdx, name, part) {
+  const week = WEEKS[weekIdx];
+  const classInfo = CLASSES.find(c => c.key === classKey);
+  const tempId = "temp_" + Date.now();
+
+  registrations[weekIdx] = registrations[weekIdx] || {};
+  registrations[weekIdx][classKey] = registrations[weekIdx][classKey] || {};
+  registrations[weekIdx][classKey][timeIdx] = registrations[weekIdx][classKey][timeIdx] || [];
+  registrations[weekIdx][classKey][timeIdx].push({ id: tempId, name, part });
+  render();
+
+  try {
+    const res = await fetch(GAS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({
+        action: "add",
+        date: week.date,
+        location: classInfo.loc,
+        class: classInfo.cls,
+        time: TIMES[timeIdx],
+        weekIdx, classKey, timeIdx,
+        name, part
+      })
+    });
+    const result = await res.json();
+    const arr = registrations[weekIdx][classKey][timeIdx];
+    const idx = arr.findIndex(en => en.id === tempId);
+    if (idx > -1 && result.id) arr[idx].id = result.id;
+  } catch (e) {
+    alert("저장 중 오류가 발생했습니다. 다시 시도해주세요.");
+    loadRegistrations();
+  }
+}
+
+async function deleteRegistration(id) {
+  Object.values(registrations).forEach(byClass => {
+    Object.values(byClass).forEach(byTime => {
+      Object.keys(byTime).forEach(ti => {
+        byTime[ti] = byTime[ti].filter(en => en.id !== id);
+      });
+    });
+  });
+  render();
+
+  try {
+    await fetch(GAS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ action: "delete", id })
+    });
+  } catch (e) {
+    alert("삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
+    loadRegistrations();
+  }
+}
+
+/* ===================== 현황판 다운로드 (엑셀, 화면과 동일한 색상/스타일) ===================== */
+async function buildDashboardExcelBlob() {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("현황판", { views: [{ showGridLines: false }] });
+  sheet.columns = [{ width: 16 }, { width: 18 }, { width: 18 }, { width: 18 }, { width: 18 }];
+
+  const thinBorder = {
+    top: { style: "thin", color: { argb: "FFE2E2E2" } },
+    left: { style: "thin", color: { argb: "FFE2E2E2" } },
+    bottom: { style: "thin", color: { argb: "FFE2E2E2" } },
+    right: { style: "thin", color: { argb: "FFE2E2E2" } }
+  };
+
+  function styleRow(row, { bg, color, bold, size, align } = {}) {
+    row.eachCell({ includeEmpty: true }, (cell) => {
+      cell.border = thinBorder;
+      cell.alignment = { vertical: "middle", horizontal: align || "center", wrapText: true };
+      if (bg) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: bg } };
+      cell.font = { bold: !!bold, size: size || 11, color: color ? { argb: color } : undefined };
+    });
+  }
+
+  // 제목 (노란 헤더바)
+  const titleRow = sheet.addRow(["제62기 전도폭발훈련 모집 부스 봉사자 신청", "", "", "", ""]);
+  sheet.mergeCells(`A${titleRow.number}:E${titleRow.number}`);
+  styleRow(titleRow, { bg: "FFF5C518", bold: true, size: 14 });
+  titleRow.height = 26;
+
+  WEEKS.forEach((week, wi) => {
+    // 주차 제목 (검정 바)
+    const weekTitleRow = sheet.addRow([week.date, "", "", "", ""]);
+    sheet.mergeCells(`A${weekTitleRow.number}:E${weekTitleRow.number}`);
+    styleRow(weekTitleRow, { bg: "FF222222", color: "FFFFFFFF", bold: true, size: 12, align: "left" });
+    weekTitleRow.height = 22;
+
+    // 위치 헤더
+    const locRow = sheet.addRow(["", "분당 7층", "분당 로비층", "수지 1층", ""]);
+    sheet.mergeCells(`D${locRow.number}:E${locRow.number}`);
+    styleRow(locRow, { bg: "FFFAFAFA", bold: true, size: 11 });
+
+    // 반 헤더
+    const clsRow = sheet.addRow(["", "분주반", "화요반", "화요반", "수주반"]);
+    styleRow(clsRow, { bg: "FFFAFAFA", bold: true, size: 11 });
+
+    TIMES.forEach((timeLabel, ti) => {
+      const rowValues = [timeLabel];
+      const filled = [];
+      CLASSES.forEach((c) => {
+        const entries = getEntries(wi, c.key, ti);
+        rowValues.push(entries.map(displayName).join("\n"));
+        filled.push(entries.length > 0);
+      });
+      const dataRow = sheet.addRow(rowValues);
+      dataRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        cell.border = thinBorder;
+        cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+        if (colNumber === 1) {
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFAFAFA" } };
+          cell.font = { bold: true, size: 11 };
+        } else if (filled[colNumber - 2]) {
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEEF6FF" } };
+          cell.font = { bold: true, size: 11, color: { argb: "FF1A5FB4" } };
+        } else {
+          cell.font = { size: 11 };
+        }
+      });
+      const maxLines = Math.max(1, ...rowValues.slice(1).map(v => (v.match(/\n/g) || []).length + 1));
+      dataRow.height = Math.max(20, 16 * maxLines);
+    });
+
+    sheet.addRow([]); // 주차 간 여백
+  });
+
+  // 반별 최종 확정 현황
+  const confirmTitleRow = sheet.addRow(["반별 최종 확정 현황", "", "", "", ""]);
+  sheet.mergeCells(`A${confirmTitleRow.number}:E${confirmTitleRow.number}`);
+  styleRow(confirmTitleRow, { bg: "FF222222", color: "FFFFFFFF", bold: true, size: 12, align: "left" });
+  confirmTitleRow.height = 22;
+
+  CONFIRM_GROUPS.forEach((g) => {
+    const info = confirmations[g.key];
+    const statusText = info ? `확정 완료 - ${info.name} · ${formatDate(info.at)}` : "미확정";
+    const row = sheet.addRow([`${g.label} (${g.sub})`, `총무: ${g.manager}`, statusText, "", ""]);
+    sheet.mergeCells(`C${row.number}:E${row.number}`);
+    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+      cell.border = thinBorder;
+      cell.alignment = { vertical: "middle", horizontal: colNumber === 1 ? "left" : "center", wrapText: true };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF6F8FB" } };
+      if (colNumber === 3) {
+        cell.font = { bold: true, color: { argb: info ? "FF2F9E44" : "FF999999" } };
+      } else {
+        cell.font = { bold: colNumber === 1 };
+      }
+    });
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  return new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+}
+
+document.getElementById("downloadBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("downloadBtn");
+  btn.disabled = true;
+  try {
+    const blob = await buildDashboardExcelBlob();
+    const now = new Date();
+    const stamp = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,"0")}${String(now.getDate()).padStart(2,"0")}`;
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `booth62_dashboard_${stamp}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert("엑셀 파일 저장 중 오류가 발생했습니다. 다시 시도해주세요.");
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+/* ===================== 시작 ===================== */
+render();
+loadRegistrations();
+</script>
+</body>
+</html>
